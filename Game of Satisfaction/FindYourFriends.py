@@ -94,18 +94,22 @@ class World():
     def iteration(self):
         # строим матрицу счастья
         self.friends = friends(self.A)
-        self.dissatisfied = self.friends < self.SATISFACTION_THRESHOLD
+        self.dissatisfied = np.logical_and(self.friends < self.SATISFACTION_THRESHOLD, self.A >= 0)
         
         # заполняем лог
         self.world_map.append(self.A.copy())
         self.dissatisfied_map.append(self.dissatisfied.copy())
         
+        # шафлим точки, которые ХОТЯТ ДВИГАТЬСЯ!
         want_to_move = self.dissatisfied.nonzero()
         want_to_move = list(zip(*want_to_move))
         np.random.shuffle(want_to_move)
         
+        # делаем пустые клетки несчастными, таким образом пометив, что они ещё не двигались в этот ход:
+        self.dissatisfied = np.logical_or(self.dissatisfied, self.A == -2)
+        
         for x, y in want_to_move:
-            if self.dissatisfied[x][y]:  # если несчастна
+            if self.dissatisfied[x][y]:  # если всё ещё несчастна
                 # вызываем функцию, которая скажет нам, куда эта точка может бежать.
                 candidates = self.where_to_run(x, y)
                 # если есть куда
